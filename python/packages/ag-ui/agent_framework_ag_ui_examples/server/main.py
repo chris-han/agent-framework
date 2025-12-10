@@ -60,7 +60,9 @@ app.add_middleware(
 
 # Create a shared chat client for all agents
 # You can use different chat clients for different agents if needed
-chat_client = AzureOpenAIChatClient()
+# Load configuration from .env file in the same directory
+env_file_path = os.path.join(os.path.dirname(__file__), "..", ".env")
+chat_client = AzureOpenAIChatClient(env_file_path=env_file_path)
 
 # Agentic Chat - basic chat agent
 add_agent_framework_fastapi_endpoint(
@@ -116,11 +118,18 @@ add_agent_framework_fastapi_endpoint(
 
 def main():
     """Run the server."""
-    port = int(os.getenv("PORT", "8888"))
-    host = os.getenv("HOST", "127.0.0.1")
+    # Support both UVICORN_* and standard PORT/HOST variables
+    port = int(os.getenv("UVICORN_PORT", os.getenv("PORT", "8888")))
+    host = os.getenv("UVICORN_HOST", os.getenv("HOST", "127.0.0.1"))
 
     print(f"\nAG-UI Examples Server starting on http://{host}:{port}")
     print("Set ENABLE_DEBUG_LOGGING=1 for detailed request logging\n")
+
+    # Enable basic logging for weather agent debug messages
+    logging.basicConfig(
+        level=logging.INFO,
+        format="%(asctime)s - %(name)s - %(levelname)s - %(message)s"
+    )
 
     # Use log_config=None to prevent uvicorn from reconfiguring logging
     # This preserves our file + console logging setup
